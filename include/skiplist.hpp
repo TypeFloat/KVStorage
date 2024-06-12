@@ -86,7 +86,7 @@ bool SkipList<K, V>::search_element(K key) {
 
 template <typename K, typename V>
 int SkipList<K, V>::insert_element(K key, V value) {
-    this->mutex.lock_shared();
+    this->mutex.lock();
     std::shared_ptr<Node<K, V>> current = this->header;
     std::vector<std::shared_ptr<Node<K, V>>> update(this->max_level + 1,
                                                     nullptr);
@@ -99,12 +99,13 @@ int SkipList<K, V>::insert_element(K key, V value) {
     }
     current = current->forward[0];
     bool status = current != nullptr && current->get_key() == key;
-    this->mutex.unlock_shared();
     // 如果已经有要插入的键值对，返回1
-    if (status) return 1;
+    if (status) {
+        this->mutex.unlock();
+        return 1;
+    }
 
     // 否则，创建一个新节点
-    this->mutex.lock();
     int random_level = this->get_random_level();
     // 如果随机层数大于当前跳表的层数，要建立高层索引
     if (random_level > this->skip_list_level) {
@@ -127,7 +128,7 @@ int SkipList<K, V>::insert_element(K key, V value) {
 
 template <typename K, typename V>
 void SkipList<K, V>::delete_element(K key) {
-    this->mutex.lock_shared();
+    this->mutex.lock();
     std::shared_ptr<Node<K, V>> current = this->header;
     std::vector<std::shared_ptr<Node<K, V>>> update(this->max_level + 1,
                                                     nullptr);
@@ -140,9 +141,7 @@ void SkipList<K, V>::delete_element(K key) {
     }
     current = current->forward[0];
     bool status = current != nullptr && current->get_key() == key;
-    this->mutex.unlock_shared();
     if (status) {
-        this->mutex.lock();
         for (int i = 0; i <= this->skip_list_level; i++) {
             if (update[i]->forward[i] != current) break;
             update[i]->forward[i] = current->forward[i];
@@ -152,8 +151,8 @@ void SkipList<K, V>::delete_element(K key) {
             this->skip_list_level--;
         }
         this->element_count--;
-        this->mutex.unlock();
     }
+    this->mutex.unlock();
 }
 
 template <typename K, typename V>

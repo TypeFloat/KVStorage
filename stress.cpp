@@ -3,7 +3,7 @@
 
 #include "skiplist.hpp"
 
-#define NUM_THREADS 1
+#define NUM_THREADS 100
 #define TEST_COUNT 10000
 SkipList<int, std::string> skipList(18);
 

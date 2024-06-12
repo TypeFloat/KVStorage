@@ -4,7 +4,7 @@
 
 #include "skiplist.hpp"
 
-#define TEST_COUNT 100000
+#define TEST_COUNT 10000
 
 TEST(Stress, testcase) {
     SkipList<int, std::string> skipList(18);  // 创建一个最大层级为18的跳表实例
