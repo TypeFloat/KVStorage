@@ -1,0 +1,5 @@
+Language: Cpp                 # 编程语言为CPP
+BasedOnStyle: Google          # 代码风格的基础风格为谷歌
+IndentWidth: 4                # 缩进数量为4
+PointerBindsToType: false     # 指针的相关设置，int* int *，两种形式均可
+ColumnLimit: 80               # 每行最多100个字符
