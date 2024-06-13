@@ -2,34 +2,34 @@
 
 #include <fstream>
 #include <iostream>
-#include <memory>
 #include <mutex>
 #include <random>
 #include <shared_mutex>
 #include <string>
 
+#include "lru_cache.hpp"
 #include "node.hpp"
 #include "utils.hpp"
 
-#define DELIMITER ":"
+#define DELIMITER ':'
 #define DUMP_FILE "dump_file.txt"
 
 template <typename K, typename V>
 class SkipList {
    private:
-    int max_level;
-    int skip_list_level;
+    int max_level{};
+    int skip_list_level{};
     std::shared_ptr<Node<K, V>> header;
-    int element_count;
+    int element_count{};
     std::ofstream file_writer;
     std::ifstream file_reader;
-    bool is_valid_string(const std::string &);
-    std::pair<std::string, std::string> get_key_value_from_string(
-        const std::string &);
     std::shared_mutex mutex;
+    static bool is_valid_string(const std::string &);
+    static std::pair<std::string, std::string> get_key_value_from_string(
+        const std::string &);
 
    public:
-    SkipList(int);
+    explicit SkipList(int);
     ~SkipList() = default;
     int get_random_level();
     std::shared_ptr<Node<K, V>> create_node(K, V, int);
@@ -39,8 +39,6 @@ class SkipList {
     void delete_element(K);
     void dump_file();
     void load_file();
-    void clear(std::shared_ptr<Node<K, V>>);
-    int size();
 };
 
 template <typename K, typename V>
@@ -72,7 +70,7 @@ template <typename K, typename V>
 bool SkipList<K, V>::search_element(K key) {
     this->mutex.lock_shared();
     std::shared_ptr<Node<K, V>> current = this->header;
-    for (int i = this->skip_list_level; i >= 0; i--) {
+    for (int i = this->skip_list_level; i >= 0; --i) {
         while (current->forward[i] != nullptr &&
                current->forward[i]->get_key() < key) {
             current = current->forward[i];
@@ -90,7 +88,7 @@ int SkipList<K, V>::insert_element(K key, V value) {
     std::shared_ptr<Node<K, V>> current = this->header;
     std::vector<std::shared_ptr<Node<K, V>>> update(this->max_level + 1,
                                                     nullptr);
-    for (int i = this->skip_list_level; i >= 0; i--) {
+    for (int i = this->skip_list_level; i >= 0; --i) {
         while (current->forward[i] != nullptr &&
                current->forward[i]->get_key() < key) {
             current = current->forward[i];
@@ -98,9 +96,8 @@ int SkipList<K, V>::insert_element(K key, V value) {
         update[i] = current;
     }
     current = current->forward[0];
-    bool status = current != nullptr && current->get_key() == key;
     // 如果已经有要插入的键值对，返回1
-    if (status) {
+    if (current != nullptr && current->get_key() == key) {
         this->mutex.unlock();
         return 1;
     }
@@ -109,7 +106,7 @@ int SkipList<K, V>::insert_element(K key, V value) {
     int random_level = this->get_random_level();
     // 如果随机层数大于当前跳表的层数，要建立高层索引
     if (random_level > this->skip_list_level) {
-        for (int i = this->skip_list_level + 1; i < random_level + 1; i++) {
+        for (int i = this->skip_list_level + 1; i < random_level + 1; ++i) {
             update[i] = this->header;
         }
         this->skip_list_level = random_level;
@@ -121,7 +118,7 @@ int SkipList<K, V>::insert_element(K key, V value) {
         new_node->forward[i] = update[i]->forward[i];
         update[i]->forward[i] = new_node;
     }
-    this->element_count++;
+    ++(this->element_count);
     this->mutex.unlock();
     return 0;
 }
@@ -132,7 +129,7 @@ void SkipList<K, V>::delete_element(K key) {
     std::shared_ptr<Node<K, V>> current = this->header;
     std::vector<std::shared_ptr<Node<K, V>>> update(this->max_level + 1,
                                                     nullptr);
-    for (int i = this->skip_list_level; i >= 0; i--) {
+    for (int i = this->skip_list_level; i >= 0; --i) {
         while (current->forward[i] != nullptr &&
                current->forward[i]->get_key() < key) {
             current = current->forward[i];
@@ -140,17 +137,16 @@ void SkipList<K, V>::delete_element(K key) {
         update[i] = current;
     }
     current = current->forward[0];
-    bool status = current != nullptr && current->get_key() == key;
-    if (status) {
+    if (current != nullptr && current->get_key() == key) {
         for (int i = 0; i <= this->skip_list_level; i++) {
             if (update[i]->forward[i] != current) break;
             update[i]->forward[i] = current->forward[i];
         }
         while (this->skip_list_level > 0 &&
                this->header->forward[this->skip_list_level] == nullptr) {
-            this->skip_list_level--;
+            --(this->skip_list_level);
         }
-        this->element_count--;
+        --(this->element_count);
     }
     this->mutex.unlock();
 }

@@ -16,7 +16,7 @@ class Node {
    private:
     K key;
     V value;
-    int node_level;
+    int node_level{};
 };
 
 template <typename K, typename V>

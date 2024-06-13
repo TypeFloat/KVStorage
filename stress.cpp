@@ -7,7 +7,7 @@
 #define TEST_COUNT 10000
 SkipList<int, std::string> skipList(18);
 
-void insertElement(int tid) {
+void insertElement(const int tid) {
     std::cout << tid << std::endl;
     int tmp = TEST_COUNT / NUM_THREADS;
     for (int i = tid * tmp, count = 0; count < tmp; i++) {
