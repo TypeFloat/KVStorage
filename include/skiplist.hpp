@@ -71,8 +71,8 @@ std::shared_ptr<Node<K, V>> SkipList<K, V>::create_node(K key, V value,
 template <typename K, typename V>
 bool SkipList<K, V>::search_element(K key) {
     this->mutex.lock_shared();
-    if (this->lru_cache->contains(key)) {
-        this->lru_cache->get(key);
+    auto value = this->lru_cache->get(key);
+    if (value.has_value()) {
         this->mutex.unlock_shared();
         return true;
     }
@@ -93,7 +93,7 @@ template <typename K, typename V>
 int SkipList<K, V>::insert_element(K key, V value) {
     this->mutex.lock();
     // 缓存中存在该键，返回1
-    if (this->lru_cache->contains(key)) {
+    if (this->lru_cache->get(key).has_value()) {
         this->mutex.unlock();
         return 1;
     }
@@ -139,7 +139,7 @@ int SkipList<K, V>::insert_element(K key, V value) {
 template <typename K, typename V>
 void SkipList<K, V>::delete_element(K key) {
     this->mutex.lock();
-    if (this->lru_cache->contains(key)) this->lru_cache->delete_element(key);
+    this->lru_cache->delete_element(key);
     std::shared_ptr<Node<K, V>> current = this->header;
     std::vector<std::shared_ptr<Node<K, V>>> update(this->max_level + 1,
                                                     nullptr);
@@ -213,7 +213,6 @@ std::pair<std::string, std::string> SkipList<K, V>::get_key_value_from_string(
 
 template <typename K, typename V>
 void SkipList<K, V>::load_file() {
-    this->mutex.lock();
     this->file_reader.open(DUMP_FILE);
     std::string line;
     K k;
@@ -228,5 +227,4 @@ void SkipList<K, V>::load_file() {
         }
     }
     this->file_reader.close();
-    this->mutex.unlock();
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <unordered_map>
 
 #include "lru_cache.hpp"
@@ -32,8 +33,7 @@ class LRUCache {
     LRUCache() = delete;
     explicit LRUCache(int);
     void set(K, V);
-    V get(K);
-    bool contains(K);
+    std::optional<V> get(K);
     void delete_element(K);
 };
 
@@ -59,12 +59,8 @@ void LRUCache<K, V>::set(K key, V value) {
 }
 
 template <typename K, typename V>
-bool LRUCache<K, V>::contains(K key) {
-    return this->cache.find(key) != this->cache.end();
-}
-
-template <typename K, typename V>
-V LRUCache<K, V>::get(K key) {
+std::optional<V> LRUCache<K, V>::get(K key) {
+    if (this->cache.find(key) == this->cache.end()) return std::nullopt;
     std::shared_ptr<LinkNode<K, V>> link_node = this->cache[key];
     link_node->next->prev = link_node->prev;
     link_node->prev->next = link_node->next;
@@ -82,6 +78,7 @@ void LRUCache<K, V>::move_to_head(std::shared_ptr<LinkNode<K, V>> link_node) {
 
 template <typename K, typename V>
 void LRUCache<K, V>::delete_element(K key) {
+    if (this->cache.find(key) == this->cache.end()) return;
     std::shared_ptr<LinkNode<K, V>> link_node = this->cache[key];
     link_node->prev->next = link_node->next;
     link_node->next->prev = link_node->prev;

@@ -10,7 +10,7 @@ find_package(Threads REQUIRED)
 include_directories(include)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/src SRC)
 
-add_executable(main stress.cpp ${SRC})
+add_executable(main main.cpp ${SRC})
 target_link_libraries(main Threads::Threads)
 
 add_subdirectory(test)
