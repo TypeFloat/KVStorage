@@ -5,7 +5,7 @@
 
 #define NUM_THREADS 100
 #define TEST_COUNT 10000
-SkipList<int, std::string> skipList(18);
+SkipList<int, std::string> skipList(18, 1000);
 
 void insertElement(const int tid) {
     std::cout << tid << std::endl;
@@ -26,7 +26,7 @@ void getElement(int tid) {
 }
 
 int main() {
-    srand(time(NULL));
+    srand(time(nullptr));
 
     {
         std::vector<std::thread> threads;
@@ -34,7 +34,7 @@ int main() {
 
         for (int i = 0; i < NUM_THREADS; i++) {
             std::cout << "main() : creating thread, " << i << std::endl;
-            threads.push_back(std::thread(insertElement, i));
+            threads.emplace_back(insertElement, i);
         }
 
         for (auto &th : threads) {
@@ -52,7 +52,7 @@ int main() {
 
         for (int i = 0; i < NUM_THREADS; i++) {
             std::cout << "main() : creating thread, " << i << std::endl;
-            threads.push_back(std::thread(getElement, i));
+            threads.emplace_back(getElement, i);
         }
 
         for (auto &th : threads) {

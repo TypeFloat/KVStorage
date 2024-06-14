@@ -27,7 +27,6 @@ class LRUCache {
     std::shared_ptr<LinkNode<K, V>> tail;
     std::unordered_map<K, std::shared_ptr<LinkNode<K, V>>> cache;
     void move_to_head(std::shared_ptr<LinkNode<K, V>>);
-    void delete_tail_element();
 
    public:
     LRUCache() = delete;
@@ -35,6 +34,7 @@ class LRUCache {
     void set(K, V);
     V get(K);
     bool contains(K);
+    void delete_element(K);
 };
 
 template <typename K, typename V>
@@ -50,11 +50,12 @@ LRUCache<K, V>::LRUCache(int capacity) {
 template <typename K, typename V>
 void LRUCache<K, V>::set(K key, V value) {
     if (this->cache.find(key) != this->cache.end()) return;
-    std::shared_ptr<LinkNode<K, V>> link_node = std::make_shared<LinkNode<K, V>>(LinkNode<K, V>(key, value));
+    std::shared_ptr<LinkNode<K, V>> link_node =
+        std::make_shared<LinkNode<K, V>>(LinkNode<K, V>(key, value));
     this->move_to_head(link_node);
     this->cache[key] = link_node;
     ++(this->size);
-    if (this->size > this->capacity) delete_tail_element();
+    if (this->size > this->capacity) delete_element(this->tail->prev->key);
 }
 
 template <typename K, typename V>
@@ -80,9 +81,10 @@ void LRUCache<K, V>::move_to_head(std::shared_ptr<LinkNode<K, V>> link_node) {
 }
 
 template <typename K, typename V>
-void LRUCache<K, V>::delete_tail_element() {
-    std::shared_ptr<LinkNode<K, V>> link_node = this->tail->prev;
-    link_node->prev->next = this->tail;
-    this->tail->prev = link_node->prev;
-    this->cache.erase(link_node->key);
+void LRUCache<K, V>::delete_element(K key) {
+    std::shared_ptr<LinkNode<K, V>> link_node = this->cache[key];
+    link_node->prev->next = link_node->next;
+    link_node->next->prev = link_node->prev;
+    this->cache.erase(key);
+    --(this->size);
 }

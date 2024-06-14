@@ -6,7 +6,7 @@
 #include <vector>
 
 TEST(SkipListTest, test1) {
-    SkipList<int, int> skip_list(3);
+    SkipList<int, int> skip_list(3, 10);
     std::vector<std::vector<int>> kv = {{1, 3}, {2, 4}, {3, 5}, {3, 3}};
     std::vector<int> kv_status = {0, 0, 0, 1};
     int status;
@@ -24,7 +24,7 @@ TEST(SkipListTest, test1) {
 }
 
 TEST(SkipListTest, test2) {
-    SkipList<int, int> skip_list(3);
+    SkipList<int, int> skip_list(3, 10);
     std::vector<std::vector<int>> kv = {{1, 100}, {2, 200}, {3, 300}};
     for (int i = 0; i < 3; ++i) {
         skip_list.insert_element(kv[i][0], kv[i][1]);
@@ -33,7 +33,7 @@ TEST(SkipListTest, test2) {
     for (int i = 0; i < 2; ++i) {
         skip_list.delete_element(delete_key[i]);
     }
-    std::vector<int> search_key = {1, 3};
+    std::vector<int> search_key = {1, 3, 10};
     std::vector<bool> status = {true, false};
     for (int i = 0; i < 2; ++i) {
         ASSERT_EQ(skip_list.search_element(search_key[i]), status[i]);
@@ -41,7 +41,7 @@ TEST(SkipListTest, test2) {
 }
 
 TEST(SkipListTest, test3) {
-    SkipList<int, int> skip_list(3);
+    SkipList<int, int> skip_list(3, 10);
     for (int i = 0; i < 50; ++i) {
         skip_list.insert_element(i, i * 10);
     }
@@ -50,7 +50,7 @@ TEST(SkipListTest, test3) {
 }
 
 TEST(SkipListTest, test4) {
-    SkipList<int, int> skip_list(3);
+    SkipList<int, int> skip_list(3, 10);
     skip_list.load_file();
     skip_list.display_list();
 }

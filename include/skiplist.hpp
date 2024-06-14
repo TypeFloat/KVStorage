@@ -19,20 +19,21 @@ class SkipList {
    private:
     int max_level{};
     int skip_list_level{};
-    std::shared_ptr<Node<K, V>> header;
     int element_count{};
+    std::shared_ptr<LRUCache<K, V>> lru_cache;
+    std::shared_ptr<Node<K, V>> header;
     std::ofstream file_writer;
     std::ifstream file_reader;
     std::shared_mutex mutex;
     static bool is_valid_string(const std::string &);
     static std::pair<std::string, std::string> get_key_value_from_string(
         const std::string &);
+    std::shared_ptr<Node<K, V>> create_node(K, V, int);
 
    public:
-    explicit SkipList(int);
+    SkipList(int, int);
     ~SkipList() = default;
     int get_random_level();
-    std::shared_ptr<Node<K, V>> create_node(K, V, int);
     int insert_element(K, V);
     void display_list();
     bool search_element(K);
@@ -42,13 +43,14 @@ class SkipList {
 };
 
 template <typename K, typename V>
-SkipList<K, V>::SkipList(int max_level) {
+SkipList<K, V>::SkipList(int max_level, int capacity) {
     this->max_level = max_level;
     this->skip_list_level = 0;
     this->element_count = 0;
     K k;
     V v;
     this->header = std::make_shared<Node<K, V>>(k, v, max_level);
+    this->lru_cache = std::make_shared<LRUCache<K, V>>(capacity);
 }
 
 template <typename K, typename V>
@@ -69,6 +71,11 @@ std::shared_ptr<Node<K, V>> SkipList<K, V>::create_node(K key, V value,
 template <typename K, typename V>
 bool SkipList<K, V>::search_element(K key) {
     this->mutex.lock_shared();
+    if (this->lru_cache->contains(key)) {
+        this->lru_cache->get(key);
+        this->mutex.unlock_shared();
+        return true;
+    }
     std::shared_ptr<Node<K, V>> current = this->header;
     for (int i = this->skip_list_level; i >= 0; --i) {
         while (current->forward[i] != nullptr &&
@@ -85,6 +92,11 @@ bool SkipList<K, V>::search_element(K key) {
 template <typename K, typename V>
 int SkipList<K, V>::insert_element(K key, V value) {
     this->mutex.lock();
+    // 缓存中存在该键，返回1
+    if (this->lru_cache->contains(key)) {
+        this->mutex.unlock();
+        return 1;
+    }
     std::shared_ptr<Node<K, V>> current = this->header;
     std::vector<std::shared_ptr<Node<K, V>>> update(this->max_level + 1,
                                                     nullptr);
@@ -119,6 +131,7 @@ int SkipList<K, V>::insert_element(K key, V value) {
         update[i]->forward[i] = new_node;
     }
     ++(this->element_count);
+    this->lru_cache->set(key, value);
     this->mutex.unlock();
     return 0;
 }
@@ -126,6 +139,7 @@ int SkipList<K, V>::insert_element(K key, V value) {
 template <typename K, typename V>
 void SkipList<K, V>::delete_element(K key) {
     this->mutex.lock();
+    if (this->lru_cache->contains(key)) this->lru_cache->delete_element(key);
     std::shared_ptr<Node<K, V>> current = this->header;
     std::vector<std::shared_ptr<Node<K, V>>> update(this->max_level + 1,
                                                     nullptr);
