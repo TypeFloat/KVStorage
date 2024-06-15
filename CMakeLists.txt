@@ -6,11 +6,12 @@ set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 find_package(Threads REQUIRED)
+find_package(Boost REQUIRED COMPONENTS serialization)
 
 include_directories(include)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/src SRC)
 
 add_executable(main main.cpp ${SRC})
-target_link_libraries(main Threads::Threads)
+target_link_libraries(main Threads::Threads Boost::serialization)
 
 add_subdirectory(test)

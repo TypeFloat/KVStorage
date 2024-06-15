@@ -1,17 +1,17 @@
 #pragma once
 
-#include <fstream>
 #include <iostream>
 #include <mutex>
 #include <random>
 #include <shared_mutex>
 #include <string>
+#include <utility>
+#include <vector>
 
+#include "data_dump.hpp"
 #include "lru_cache.hpp"
 #include "node.hpp"
-#include "utils.hpp"
 
-#define DELIMITER ':'
 #define DUMP_FILE "dump_file.txt"
 
 template <typename K, typename V>
@@ -22,12 +22,7 @@ class SkipList {
     int element_count{};
     std::shared_ptr<LRUCache<K, V>> lru_cache;
     std::shared_ptr<Node<K, V>> header;
-    std::ofstream file_writer;
-    std::ifstream file_reader;
     std::shared_mutex mutex;
-    static bool is_valid_string(const std::string &);
-    static std::pair<std::string, std::string> get_key_value_from_string(
-        const std::string &);
     std::shared_ptr<Node<K, V>> create_node(K, V, int);
 
    public:
@@ -172,7 +167,7 @@ void SkipList<K, V>::display_list() {
     for (int i = this->skip_list_level; i >= 0; --i) {
         current = this->header->forward[i];
         while (current != nullptr) {
-            std::cout << current->get_key() << DELIMITER << current->get_value()
+            std::cout << current->get_key() << ":" << current->get_value()
                       << " ";
             current = current->forward[i];
         }
@@ -184,47 +179,25 @@ void SkipList<K, V>::display_list() {
 template <typename K, typename V>
 void SkipList<K, V>::dump_file() {
     this->mutex.lock_shared();
-    this->file_writer.open(DUMP_FILE);
     std::shared_ptr<Node<K, V>> current;
+    DataDumper<K, V> data_dumper;
     for (int i = this->skip_list_level; i >= 0; --i) {
         current = this->header->forward[i];
         while (current != nullptr) {
-            this->file_writer << current->get_key() << DELIMITER
-                              << current->get_value() << "\n";
+            data_dumper.keys.emplace_back(current->get_key());
+            data_dumper.values.emplace_back(current->get_value());
             current = current->forward[i];
         }
     }
-    this->file_writer.close();
+    data_dumper.dump(DUMP_FILE);
     this->mutex.unlock_shared();
 }
 
 template <typename K, typename V>
-bool SkipList<K, V>::is_valid_string(const std::string &s) {
-    return !s.empty() && s.find(DELIMITER) != std::string::npos;
-}
-
-template <typename K, typename V>
-std::pair<std::string, std::string> SkipList<K, V>::get_key_value_from_string(
-    const std::string &s) {
-    std::string key = s.substr(0, s.find(DELIMITER));
-    std::string value = s.substr(s.find(DELIMITER) + 1);
-    return std::make_pair(key, value);
-}
-
-template <typename K, typename V>
 void SkipList<K, V>::load_file() {
-    this->file_reader.open(DUMP_FILE);
-    std::string line;
-    K k;
-    V v;
-    while (std::getline(this->file_reader, line)) {
-        if (this->is_valid_string(line)) {
-            std::pair<std::string, std::string> kv =
-                this->get_key_value_from_string(line);
-            k = stoT<K>(kv.first);
-            v = stoT<V>(kv.second);
-            this->insert_element(k, v);
-        }
+    DataDumper<K, V> data_dumper;
+    std::vector<std::pair<K, V>> data = data_dumper.load(DUMP_FILE);
+    for (auto iter = data.begin(); iter != data.end(); ++iter) {
+        this->insert_element(iter->first, iter->second);
     }
-    this->file_reader.close();
 }

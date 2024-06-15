@@ -4,6 +4,6 @@ aux_source_directory(. TEST)
 
 add_executable(test_main ${TEST} ${SRC}
         cache.cpp)
-target_link_libraries(test_main ${GTEST_LIBRARIES})
+target_link_libraries(test_main ${GTEST_LIBRARIES} Boost::serialization)
 
 enable_testing()
