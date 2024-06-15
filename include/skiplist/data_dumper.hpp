@@ -13,14 +13,12 @@ class DataDumper {
     std::vector<V> values;
     DataDumper<K, V>() = default;
 
-    // FIXME
     void dump(const std::string& filename) {
         std::ofstream ofs(filename);
         boost::archive::text_oarchive oa(ofs);
         oa << *this;
     }
 
-    // FIXME
     std::vector<std::pair<K, V>> load(const std::string& filename) {
         std::vector<std::pair<K, V>> result;
         std::ifstream ifs(filename);

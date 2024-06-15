@@ -1,11 +1,47 @@
-#include "skiplist.hpp"
+#include "skiplist/skiplist.hpp"
 
 #include <gtest/gtest.h>
 
 #include <iostream>
 #include <vector>
 
-TEST(SkipListTest, test1) {
+TEST(Node, TestCase) {
+    Node<int, int> node(1, 2, 3);
+    ASSERT_EQ(node.get_key(), 1);
+    ASSERT_EQ(node.get_value(), 2);
+}
+
+TEST(Cache, TestCase) {
+    LRUCache<int, int> cache = LRUCache<int, int>(3);
+    cache.set(1, 2);
+    cache.set(2, 3);
+    cache.set(3, 4);
+    ASSERT_EQ(cache.get(1), 2);
+    cache.set(4, 5);
+    ASSERT_EQ(cache.get(2).has_value(), false);
+}
+
+TEST(DataDumper, Dump) {
+    DataDumper<int, std::string> data;
+    data.keys = {1, 2, 3};
+    data.values = {"one", "two", "three"};
+
+    // 保存到文件
+    data.dump("data.txt");
+}
+
+TEST(DataDumper, Load) {
+    DataDumper<int, std::string> loaded_data;
+    std::vector<std::pair<int, std::string>> loaded_pairs =
+        loaded_data.load("data.txt");
+
+    // 打印加载的数据
+    for (const auto& pair : loaded_pairs) {
+        std::cout << pair.first << ": " << pair.second << std::endl;
+    }
+}
+
+TEST(SkipList, Insert) {
     SkipList<int, int> skip_list(3, 10);
     std::vector<std::vector<int>> kv = {{1, 3}, {2, 4}, {3, 5}, {3, 3}};
     std::vector<int> kv_status = {0, 0, 0, 1};
@@ -23,7 +59,7 @@ TEST(SkipListTest, test1) {
     }
 }
 
-TEST(SkipListTest, test2) {
+TEST(SkipList, Delete) {
     SkipList<int, int> skip_list(3, 10);
     std::vector<std::vector<int>> kv = {{1, 100}, {2, 200}, {3, 300}};
     for (int i = 0; i < 3; ++i) {
@@ -40,7 +76,7 @@ TEST(SkipListTest, test2) {
     }
 }
 
-TEST(SkipListTest, test3) {
+TEST(SkipList, Dump) {
     SkipList<int, int> skip_list(3, 10);
     for (int i = 0; i < 50; ++i) {
         skip_list.insert_element(i, i * 10);
@@ -49,8 +85,19 @@ TEST(SkipListTest, test3) {
     skip_list.dump_file();
 }
 
-TEST(SkipListTest, test4) {
+TEST(SkipList, Load) {
     SkipList<int, int> skip_list(3, 10);
     skip_list.load_file();
     skip_list.display_list();
+}
+
+TEST(SkipList, Stress) {
+    SkipList<int, std::string> skipList(18, 100);
+    int test_count = 10000;
+    for (int count = 0; count < test_count; count++) {
+        skipList.insert_element(rand() % test_count, "a");
+    }
+    for (int count = 0; count < test_count; count++) {
+        skipList.search_element(rand() % test_count);
+    }
 }

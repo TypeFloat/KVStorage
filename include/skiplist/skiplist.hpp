@@ -8,7 +8,7 @@
 #include <utility>
 #include <vector>
 
-#include "data_dump.hpp"
+#include "data_dumper.hpp"
 #include "lru_cache.hpp"
 #include "node.hpp"
 

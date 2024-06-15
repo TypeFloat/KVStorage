@@ -2,7 +2,7 @@
 #include <thread>
 #include <vector>
 
-#include "skiplist.hpp"
+#include "skiplist/skiplist.hpp"
 
 #define NUM_THREADS 100
 #define TEST_COUNT 100000
