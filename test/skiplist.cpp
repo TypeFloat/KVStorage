@@ -7,8 +7,8 @@
 
 TEST(Node, TestCase) {
     Node<int, int> node(1, 2, 3);
-    ASSERT_EQ(node.get_key(), 1);
-    ASSERT_EQ(node.get_value(), 2);
+    ASSERT_EQ(node.getKey(), 1);
+    ASSERT_EQ(node.getValue(), 2);
 }
 
 TEST(Cache, TestCase) {
@@ -47,14 +47,14 @@ TEST(SkipList, Insert) {
     std::vector<int> kv_status = {0, 0, 0, 1};
     int status;
     for (int i = 0; i < 4; ++i) {
-        status = skip_list.insert_element(kv[i][0], kv[i][1]);
+        status = skip_list.insertElement(kv[i][0], kv[i][1]);
         ASSERT_EQ(status, kv_status[i]);
     }
 
     std::vector<int> k = {1, 2, 4, 3};
     std::vector<bool> k_ans = {true, true, false, true};
     for (int i = 0; i < 4; ++i) {
-        status = skip_list.search_element(k[i]);
+        status = skip_list.searchElement(k[i]);
         ASSERT_EQ(status, k_ans[i]);
     }
 }
@@ -63,41 +63,41 @@ TEST(SkipList, Delete) {
     SkipList<int, int> skip_list(3, 10);
     std::vector<std::vector<int>> kv = {{1, 100}, {2, 200}, {3, 300}};
     for (int i = 0; i < 3; ++i) {
-        skip_list.insert_element(kv[i][0], kv[i][1]);
+        skip_list.insertElement(kv[i][0], kv[i][1]);
     }
     std::vector<int> delete_key = {2, 3};
     for (int i = 0; i < 2; ++i) {
-        skip_list.delete_element(delete_key[i]);
+        skip_list.deleteElement(delete_key[i]);
     }
     std::vector<int> search_key = {1, 3, 10};
     std::vector<bool> status = {true, false};
     for (int i = 0; i < 2; ++i) {
-        ASSERT_EQ(skip_list.search_element(search_key[i]), status[i]);
+        ASSERT_EQ(skip_list.searchElement(search_key[i]), status[i]);
     }
 }
 
 TEST(SkipList, Dump) {
     SkipList<int, int> skip_list(3, 10);
     for (int i = 0; i < 50; ++i) {
-        skip_list.insert_element(i, i * 10);
+        skip_list.insertElement(i, i * 10);
     }
-    skip_list.display_list();
-    skip_list.dump_file();
+    skip_list.displayList();
+    skip_list.dumpFile();
 }
 
 TEST(SkipList, Load) {
     SkipList<int, int> skip_list(3, 10);
-    skip_list.load_file();
-    skip_list.display_list();
+    skip_list.loadFile();
+    skip_list.displayList();
 }
 
 TEST(SkipList, Stress) {
     SkipList<int, std::string> skipList(18, 100);
     int test_count = 10000;
     for (int count = 0; count < test_count; count++) {
-        skipList.insert_element(rand() % test_count, "a");
+        skipList.insertElement(rand() % test_count, "a");
     }
     for (int count = 0; count < test_count; count++) {
-        skipList.search_element(rand() % test_count);
+        skipList.searchElement(rand() % test_count);
     }
 }

@@ -37,15 +37,15 @@ class LRUCache {
     std::shared_ptr<LinkNode<K, V>> head;
     std::shared_ptr<LinkNode<K, V>> tail;
     std::unordered_map<K, std::shared_ptr<LinkNode<K, V>>> cache;
-    void move_to_head(std::shared_ptr<LinkNode<K, V>>);
-    void delete_element(K);
+    void moveToHead(std::shared_ptr<LinkNode<K, V>>);
+    void deleteElement(K);
 
    public:
     LRUCache() = delete;
     explicit LRUCache(int);
     void set(K, V);
     std::optional<V> get(K);
-    friend void SkipList<K, V>::delete_element(K);
+    friend void SkipList<K, V>::deleteElement(K);
 };
 
 /**
@@ -78,10 +78,10 @@ void LRUCache<K, V>::set(K key, V value) {
     if (this->cache.find(key) != this->cache.end()) return;
     std::shared_ptr<LinkNode<K, V>> link_node =
         std::make_shared<LinkNode<K, V>>(LinkNode<K, V>(key, value));
-    this->move_to_head(link_node);
+    this->moveToHead(link_node);
     this->cache[key] = link_node;
     ++(this->size);
-    if (this->size > this->capacity) delete_element(this->tail->prev->key);
+    if (this->size > this->capacity) deleteElement(this->tail->prev->key);
 }
 
 /**
@@ -99,12 +99,12 @@ std::optional<V> LRUCache<K, V>::get(K key) {
     std::shared_ptr<LinkNode<K, V>> link_node = this->cache[key];
     link_node->next->prev = link_node->prev;
     link_node->prev->next = link_node->next;
-    move_to_head(link_node);
+    moveToHead(link_node);
     return link_node->value;
 }
 
 template <typename K, typename V>
-void LRUCache<K, V>::move_to_head(std::shared_ptr<LinkNode<K, V>> link_node) {
+void LRUCache<K, V>::moveToHead(std::shared_ptr<LinkNode<K, V>> link_node) {
     link_node->prev = this->head;
     link_node->next = this->head->next;
     link_node->next->prev = link_node;
@@ -119,7 +119,7 @@ void LRUCache<K, V>::move_to_head(std::shared_ptr<LinkNode<K, V>> link_node) {
  * @param key 要删除的键
  */
 template <typename K, typename V>
-void LRUCache<K, V>::delete_element(K key) {
+void LRUCache<K, V>::deleteElement(K key) {
     if (this->cache.find(key) == this->cache.end()) return;
     std::shared_ptr<LinkNode<K, V>> link_node = this->cache[key];
     link_node->prev->next = link_node->next;

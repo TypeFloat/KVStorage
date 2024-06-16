@@ -1,8 +1,8 @@
+#include "skiplist/skiplist.hpp"
+
 #include <chrono>
 #include <thread>
 #include <vector>
-
-#include "skiplist/skiplist.hpp"
 
 #define NUM_THREADS 100
 #define TEST_COUNT 100000
@@ -12,7 +12,7 @@ void insertElement(const int tid) {
     int tmp = TEST_COUNT / NUM_THREADS;
     for (int i = tid * tmp, count = 0; count < tmp; i++) {
         count++;
-        skipList.insert_element(rand() % TEST_COUNT, "a");
+        skipList.insertElement(rand() % TEST_COUNT, "a");
     }
 }
 
@@ -20,7 +20,7 @@ void getElement(int tid) {
     int tmp = TEST_COUNT / NUM_THREADS;
     for (int i = tid * tmp, count = 0; count < tmp; i++) {
         count++;
-        skipList.search_element(rand() % TEST_COUNT);
+        skipList.searchElement(rand() % TEST_COUNT);
     }
 }
 
