@@ -37,7 +37,7 @@ TEST(DataDumper, Load) {
 
     // 打印加载的数据
     for (const auto& pair : loaded_pairs) {
-        std::cout << pair.first << ": " << pair.second << std::endl;
+        std::cout << pair.first << ":" << pair.second << std::endl;
     }
 }
 

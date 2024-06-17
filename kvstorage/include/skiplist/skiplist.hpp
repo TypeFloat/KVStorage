@@ -34,14 +34,14 @@ class Node {
    private:
     K key;
     V value;
-    int node_level{};
+    int nodeLevel{};
 };
 
 template <typename K, typename V>
 Node<K, V>::Node(const K k, const V v, int level) {
     this->key = k;
     this->value = v;
-    this->node_level = level;
+    this->nodeLevel = level;
     this->forward =
         std::vector<std::shared_ptr<Node<K, V>>>(level + 1, nullptr);
 };

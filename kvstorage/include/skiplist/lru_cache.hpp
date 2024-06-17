@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <optional>
 #include <unordered_map>
 
@@ -18,15 +19,13 @@ class SkipList;
  */
 template <typename K, typename V>
 struct LinkNode {
-    std::shared_ptr<LinkNode> prev;
-    std::shared_ptr<LinkNode> next;
+    // NOTE: 使用弱引用，防止循环引用导致内存泄漏
+    std::weak_ptr<LinkNode> prev;
+    std::weak_ptr<LinkNode> next;
     K key;
     V value;
     LinkNode() = default;
-    LinkNode(K key, V value) : key(key), value(value) {
-        this->prev = nullptr;
-        this->next = nullptr;
-    }
+    LinkNode(K key, V value) : key(key), value(value) {}
 };
 
 template <typename K, typename V>
@@ -76,12 +75,13 @@ LRUCache<K, V>::LRUCache(int capacity) {
 template <typename K, typename V>
 void LRUCache<K, V>::set(K key, V value) {
     if (this->cache.find(key) != this->cache.end()) return;
-    std::shared_ptr<LinkNode<K, V>> link_node =
+    std::shared_ptr<LinkNode<K, V>> linkNode =
         std::make_shared<LinkNode<K, V>>(LinkNode<K, V>(key, value));
-    this->moveToHead(link_node);
-    this->cache[key] = link_node;
+    this->moveToHead(linkNode);
+    this->cache[key] = linkNode;
     ++(this->size);
-    if (this->size > this->capacity) deleteElement(this->tail->prev->key);
+    std::shared_ptr<LinkNode<K, V>> preNode = this->tail->prev.lock();
+    if (this->size > this->capacity) deleteElement(preNode->key);
 }
 
 /**
@@ -96,19 +96,19 @@ void LRUCache<K, V>::set(K key, V value) {
 template <typename K, typename V>
 std::optional<V> LRUCache<K, V>::get(K key) {
     if (this->cache.find(key) == this->cache.end()) return std::nullopt;
-    std::shared_ptr<LinkNode<K, V>> link_node = this->cache[key];
-    link_node->next->prev = link_node->prev;
-    link_node->prev->next = link_node->next;
-    moveToHead(link_node);
-    return link_node->value;
+    std::shared_ptr<LinkNode<K, V>> linkNode = this->cache[key];
+    linkNode->prev.lock()->next = linkNode->next;
+    linkNode->next.lock()->prev = linkNode->prev;
+    moveToHead(linkNode);
+    return linkNode->value;
 }
 
 template <typename K, typename V>
-void LRUCache<K, V>::moveToHead(std::shared_ptr<LinkNode<K, V>> link_node) {
-    link_node->prev = this->head;
-    link_node->next = this->head->next;
-    link_node->next->prev = link_node;
-    this->head->next = link_node;
+void LRUCache<K, V>::moveToHead(std::shared_ptr<LinkNode<K, V>> linkNode) {
+    linkNode->prev = this->head;
+    linkNode->next = this->head->next;
+    linkNode->next.lock()->prev = linkNode;
+    this->head->next = linkNode;
 }
 
 /**
@@ -121,9 +121,9 @@ void LRUCache<K, V>::moveToHead(std::shared_ptr<LinkNode<K, V>> link_node) {
 template <typename K, typename V>
 void LRUCache<K, V>::deleteElement(K key) {
     if (this->cache.find(key) == this->cache.end()) return;
-    std::shared_ptr<LinkNode<K, V>> link_node = this->cache[key];
-    link_node->prev->next = link_node->next;
-    link_node->next->prev = link_node->prev;
+    std::shared_ptr<LinkNode<K, V>> linkNode = this->cache[key];
+    linkNode->prev.lock()->next = linkNode->next;
+    linkNode->next.lock()->prev = linkNode->prev;
     this->cache.erase(key);
     --(this->size);
 }
