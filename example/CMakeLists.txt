@@ -1,2 +1,2 @@
-add_executable(skiplist skiplist.cpp)
-target_link_libraries(skiplist Threads::Threads Boost::serialization)
+add_executable(raft raft.cpp ${PROTO} ${RPC} ${RAFT})
+target_link_libraries(raft gRPC::grpc++_reflection gRPC::grpc++ protobuf::libprotobuf glog::glog)
